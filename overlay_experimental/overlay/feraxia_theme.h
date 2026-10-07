@@ -136,4 +136,3 @@ inline void auxiliary_window(float width, float height) {
     ImGui::SetNextWindowPos(ImVec2(display.x * .5f, display.y * .5f), ImGuiCond_Appearing, ImVec2(.5f, .5f));
 }
 }
-

@@ -13,4 +13,3 @@ if not exist "%OUT%" mkdir "%OUT%"
 cl /nologo /EHsc /std:c++17 /W3 /I"%IMGUI%" /I"%IMGUI%\backends" tests\feraxia-overlay\preview_main.cpp "%IMGUI%\imgui.cpp" "%IMGUI%\imgui_draw.cpp" "%IMGUI%\imgui_tables.cpp" "%IMGUI%\imgui_widgets.cpp" "%IMGUI%\backends\imgui_impl_win32.cpp" "%IMGUI%\backends\imgui_impl_dx11.cpp" "%IMGUI%\backends\imgui_win_shader_blobs.cpp" /Fe:"%OUT%\preview.exe" /Fo:"%OUT%\\" /link d3d11.lib dxgi.lib d3dcompiler.lib user32.lib gdi32.lib dwmapi.lib
 if errorlevel 1 exit /b 1
 "%OUT%\preview.exe" %*
-
