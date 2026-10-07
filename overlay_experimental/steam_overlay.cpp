@@ -481,6 +481,8 @@ void Steam_Overlay::create_fonts()
         font_builder.AddText(translationAutoAcceptFriendInvite[i]);
         font_builder.AddText(translationFpsCheckbox[i]);
         font_builder.AddText(translationFpsDisplay[i]);
+        font_builder.AddText(translationPingCheckbox[i]);
+        font_builder.AddText(translationPingDisplay[i]);
         font_builder.AddText(translationFrametimeCheckbox[i]);
         font_builder.AddText(translationFrametimeDisplay[i]);
         font_builder.AddText(translationFrametimeUnitDisplay[i]);

@@ -7706,4 +7706,196 @@ const char translationPlaytimeDisplay[TRANSLATION_NUMBER_OF_LANGUAGES][TRANSLATI
 };
 
 
+
+const char translationPingCheckbox[TRANSLATION_NUMBER_OF_LANGUAGES][TRANSLATION_BUFFER_SIZE] = {
+	// 0 - English
+  u8"Ping",
+
+	// 1 - Arabic
+  u8"Ping",
+
+	// 2 - Bulgarian
+  u8"Ping",
+
+	// 3 - Simplified Chinese
+  u8"Ping",
+
+	// 4 - Traditional Chinese
+  u8"Ping",
+
+	// 5 - Czech
+  u8"Ping",
+
+	// 6 - Danish
+  u8"Ping",
+
+	// 7 - Dutch
+  u8"Ping",
+
+	// 8 - Finnish
+  u8"Ping",
+
+	// 9 - French
+  u8"Ping",
+
+	// 10 - German
+  u8"Ping",
+
+	// 11 - Greek
+  u8"Ping",
+
+	// 12 - Hungarian
+  u8"Ping",
+
+	// 13 - Italian
+  u8"Ping",
+
+	// 14 - Japanese
+  u8"Ping",
+
+	// 15 - Korean
+  u8"Ping",
+
+	// 16 - Norwegian
+  u8"Ping",
+
+	// 17 - Polish
+  u8"Ping",
+
+	// 18 - Portuguese
+  u8"Ping",
+
+	// 19 - Brazilian Portuguese
+  u8"Ping",
+
+	// 20 - Romanian
+  u8"Ping",
+
+	// 21 - Russian
+  u8"Ping",
+
+	// 22 - Spanish
+  u8"Ping",
+
+	// 23 - Latin American
+  u8"Ping",
+
+	// 24 - Swedish
+  u8"Ping",
+
+	// 25 - Thai
+  u8"Ping",
+
+	// 26 - Turkish
+  u8"Ping",
+
+	// 27 - Ukrainian
+  u8"Ping",
+
+	// 28 - Vietnamese
+  u8"Ping",
+
+	// 29 - Croatian
+  u8"Ping",
+
+  // 30 - Indonesian
+  u8"Ping",
+
+};
+
+const char translationPingDisplay[TRANSLATION_NUMBER_OF_LANGUAGES][TRANSLATION_BUFFER_SIZE] = {
+	// 0 - English
+  u8"Ping: ",
+
+	// 1 - Arabic
+  u8"Ping: ",
+
+	// 2 - Bulgarian
+  u8"Ping: ",
+
+	// 3 - Simplified Chinese
+  u8"Ping: ",
+
+	// 4 - Traditional Chinese
+  u8"Ping: ",
+
+	// 5 - Czech
+  u8"Ping: ",
+
+	// 6 - Danish
+  u8"Ping: ",
+
+	// 7 - Dutch
+  u8"Ping: ",
+
+	// 8 - Finnish
+  u8"Ping: ",
+
+	// 9 - French
+  u8"Ping: ",
+
+	// 10 - German
+  u8"Ping: ",
+
+	// 11 - Greek
+  u8"Ping: ",
+
+	// 12 - Hungarian
+  u8"Ping: ",
+
+	// 13 - Italian
+  u8"Ping: ",
+
+	// 14 - Japanese
+  u8"Ping: ",
+
+	// 15 - Korean
+  u8"Ping: ",
+
+	// 16 - Norwegian
+  u8"Ping: ",
+
+	// 17 - Polish
+  u8"Ping: ",
+
+	// 18 - Portuguese
+  u8"Ping: ",
+
+	// 19 - Brazilian Portuguese
+  u8"Ping: ",
+
+	// 20 - Romanian
+  u8"Ping: ",
+
+	// 21 - Russian
+  u8"Ping: ",
+
+	// 22 - Spanish
+  u8"Ping: ",
+
+	// 23 - Latin American
+  u8"Ping: ",
+
+	// 24 - Swedish
+  u8"Ping: ",
+
+	// 25 - Thai
+  u8"Ping: ",
+
+	// 26 - Turkish
+  u8"Ping: ",
+
+	// 27 - Ukrainian
+  u8"Ping: ",
+
+	// 28 - Vietnamese
+  u8"Ping: ",
+
+	// 29 - Croatian
+  u8"Ping: ",
+
+  // 30 - Indonesian
+  u8"Ping: ",
+
+};
 #endif // _STEAM_OVERLAY_TRANSLATIONS_H
