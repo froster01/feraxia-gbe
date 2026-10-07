@@ -10,6 +10,7 @@
 
 #include <future>
 #include <atomic>
+#include <unordered_map>
 #include <memory>
 #include "dll/playtime.h"
 #include "InGameOverlay/RendererHook.h"
@@ -184,6 +185,10 @@ class Steam_Overlay
     bool overlay_state_changed = false;
 
     std::atomic<bool> i_have_lobby = false;
+    // ping cache for the render thread, refreshed twice a second from Networking's snapshot
+    std::unordered_map<uint64_t, int> peer_pings{};
+    std::chrono::steady_clock::time_point last_ping_refresh{};
+    void refresh_peer_pings();
 
     // some stuff has to be initialized once the renderer hook is ready
     std::atomic<bool> late_init_imgui = false;
