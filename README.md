@@ -1,3 +1,5 @@
+> **Feraxia overlay fork:** see [FERAXIA.md](FERAXIA.md) for the native redesign, Windows build commands and verification limits.
+
 ## :large_orange_diamond: **This is a fork**
 Fork of https://gitlab.com/Mr_Goldberg/goldberg_emulator
 

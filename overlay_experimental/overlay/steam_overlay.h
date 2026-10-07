@@ -201,6 +201,7 @@ class Steam_Overlay
     int renderer_hook_timeout_ctr{};
 
     std::vector<InGameOverlay::ToggleKey> toggle_keys{};
+    std::string overlay_hotkey_hint{};
     std::vector<InGameOverlay::ToggleKey> screenshot_keys{};
 
     struct ScreenshotItem {

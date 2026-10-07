@@ -141,9 +141,9 @@ struct Overlay_Appearance {
     float font_glyph_extra_spacing_x = 1.0f;
     float font_glyph_extra_spacing_y = 0.0f;
 
-    float notification_r = 0.12f;
-    float notification_g = 0.14f;
-    float notification_b = 0.21f;
+    float notification_r = 19.f / 255.f;
+    float notification_g = 19.f / 255.f;
+    float notification_b = 21.f / 255.f;
     float notification_a = 1.0f;
 
     float notification_rounding = 10.0f; // corners roundness for all notifications
@@ -165,34 +165,34 @@ struct Overlay_Appearance {
     bool locked_expanded = false;
     bool show_playtime_in_user_info = false;
     
-    float background_r = 0.12f;
-    float background_g = 0.11f;
-    float background_b = 0.11f;
-    float background_a = 0.55f;
+    float background_r = 19.f / 255.f;
+    float background_g = 19.f / 255.f;
+    float background_b = 21.f / 255.f;
+    float background_a = 1.0f;
 
-    float element_r = 0.30f;
-    float element_g = 0.32f;
-    float element_b = 0.40f;
+    float element_r = 30.f / 255.f;
+    float element_g = 30.f / 255.f;
+    float element_b = 33.f / 255.f;
     float element_a = 1.0f;
 
-    float element_hovered_r = 0.278f;
-    float element_hovered_g = 0.393f;
-    float element_hovered_b = 0.602f;
+    float element_hovered_r = 73.f / 255.f;
+    float element_hovered_g = 48.f / 255.f;
+    float element_hovered_b = 54.f / 255.f;
     float element_hovered_a = 1.0f;
 
-    float element_active_r = -1.0f;
-    float element_active_g = -1.0f;
-    float element_active_b = -1.0f;
-    float element_active_a = -1.0f;
+    float element_active_r = 224.f / 255.f;
+    float element_active_g = 27.f / 255.f;
+    float element_active_b = 36.f / 255.f;
+    float element_active_a = 1.0f;
 
     float stats_background_r = 0.0f;
     float stats_background_g = 0.0f;
     float stats_background_b = 0.0f;
     float stats_background_a = 0.6f;
 
-    float stats_text_r = 0.8f;
-    float stats_text_g = 0.7f;
-    float stats_text_b = 0.0f;
+    float stats_text_r = 201.f / 255.f;
+    float stats_text_g = 202.f / 255.f;
+    float stats_text_b = 204.f / 255.f;
     float stats_text_a = 1.0f;
 
     NotificationPosition ach_earned_pos = NotificationPosition::bot_right; // achievement earned

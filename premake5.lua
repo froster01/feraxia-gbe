@@ -776,11 +776,17 @@ if os.target() == "windows" then
 
 -- token expansion like '%{cfg.platform}' happens later during project build
 local dos_stub_exe = path.translate(path.getabsolute('resources/win/file_dos_stub/file_dos_stub_%{cfg.platform}.exe', _MAIN_SCRIPT_DIR), '\\')
+local dos_stub_exe_x86 = path.translate(path.getabsolute('resources/win/file_dos_stub/file_dos_stub_x32.exe', _MAIN_SCRIPT_DIR), '\\')
 local signer_tool = path.translate(path.getabsolute('third-party/build/win/cert/sign_helper.bat', _MAIN_SCRIPT_DIR), '\\')
 -- change dos stub
-filter { "system:windows", "options:dosstub", }
+filter { "system:windows", "options:dosstub", "platforms:not x86", }
     postbuildcommands {
         '"' .. dos_stub_exe .. '" %[%{!cfg.buildtarget.abspath}]',
+    }
+-- The checked-in 32-bit helper retains its historical x32 filename.
+filter { "system:windows", "options:dosstub", "platforms:x86", }
+    postbuildcommands {
+        '"' .. dos_stub_exe_x86 .. '" %[%{!cfg.buildtarget.abspath}]',
     }
 -- sign
 filter { "system:windows", "options:winsign", }

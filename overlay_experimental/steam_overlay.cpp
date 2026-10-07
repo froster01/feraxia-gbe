@@ -6,6 +6,8 @@
 // avoids confusing ImGui when another label has the same text "MyText"
 
 #include "overlay/steam_overlay.h"
+#include "overlay/feraxia_layout.h"
+#include "overlay/feraxia_theme.h"
 
 #include <thread>
 #include <string>
@@ -88,15 +90,6 @@ static constexpr const char* valid_languages[] = {
 };
 
 
-// ListBoxHeader() is deprecated and inlined inside <imgui.h>
-// Helper to calculate size from items_count and height_in_items
-static inline bool ImGuiHelper_BeginListBox(const char* label, int items_count) {
-    int min_items = items_count < 7 ? items_count : 7;
-    float height = ImGui::GetTextLineHeightWithSpacing() * (min_items + 0.25f) + ImGui::GetStyle().FramePadding.y * 2.0f;
-    return ImGui::BeginListBox(label, ImVec2(0.0f, height));
-}
-
-
 void Steam_Overlay::overlay_run_callback(void* object)
 {
     // PRINT_DEBUG_ENTRY();
@@ -157,6 +150,30 @@ void Steam_Overlay::parse_key_combo()
     } else {
         toggle_keys = std::vector<InGameOverlay::ToggleKey>(keys_combo.begin(), keys_combo.end());
     }
+    overlay_hotkey_hint.clear();
+    for (auto key : toggle_keys) {
+        if (!overlay_hotkey_hint.empty()) overlay_hotkey_hint += " + ";
+        switch (key) {
+            case InGameOverlay::ToggleKey::SHIFT: overlay_hotkey_hint += "Shift"; break;
+            case InGameOverlay::ToggleKey::CTRL: overlay_hotkey_hint += "Ctrl"; break;
+            case InGameOverlay::ToggleKey::ALT: overlay_hotkey_hint += "Alt"; break;
+            case InGameOverlay::ToggleKey::TAB: overlay_hotkey_hint += "Tab"; break;
+            case InGameOverlay::ToggleKey::F1: overlay_hotkey_hint += "F1"; break;
+            case InGameOverlay::ToggleKey::F2: overlay_hotkey_hint += "F2"; break;
+            case InGameOverlay::ToggleKey::F3: overlay_hotkey_hint += "F3"; break;
+            case InGameOverlay::ToggleKey::F4: overlay_hotkey_hint += "F4"; break;
+            case InGameOverlay::ToggleKey::F5: overlay_hotkey_hint += "F5"; break;
+            case InGameOverlay::ToggleKey::F6: overlay_hotkey_hint += "F6"; break;
+            case InGameOverlay::ToggleKey::F7: overlay_hotkey_hint += "F7"; break;
+            case InGameOverlay::ToggleKey::F8: overlay_hotkey_hint += "F8"; break;
+            case InGameOverlay::ToggleKey::F9: overlay_hotkey_hint += "F9"; break;
+            case InGameOverlay::ToggleKey::F10: overlay_hotkey_hint += "F10"; break;
+            case InGameOverlay::ToggleKey::F11: overlay_hotkey_hint += "F11"; break;
+            case InGameOverlay::ToggleKey::F12: overlay_hotkey_hint += "F12"; break;
+            default: break;
+        }
+    }
+
 }
 
 void Steam_Overlay::parse_screenshot_key_combo()
@@ -607,8 +624,7 @@ void Steam_Overlay::overlay_state_hook(bool ready)
             io.IniFilename = NULL;
 
             ImGuiStyle &style = ImGui::GetStyle();
-            // Disable round window
-            style.WindowRounding = 0.0;
+            feraxia::apply_theme(style);
         }
     }
 }
@@ -919,18 +935,17 @@ void Steam_Overlay::build_friend_window(Friend const& frd, friend_window_state& 
     bool show = true;
     bool send_chat_msg = false;
 
-    float width = ImGui::CalcTextSize("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").x;
+    float width = ImGui::GetFontSize() * 36.f;
 
     if (state.window_state & window_state_need_attention && ImGui::IsWindowFocused()) {
         state.window_state &= ~window_state_need_attention;
     }
-    ImGui::SetNextWindowSizeConstraints(ImVec2{ width, ImGui::GetFontSize()*8 + ImGui::GetFrameHeightWithSpacing()*4 },
-        ImVec2{ std::numeric_limits<float>::max() , std::numeric_limits<float>::max() });
+    feraxia::auxiliary_window(width, ImGui::GetFontSize() * 28.f);
 
     ImGui::SetNextWindowBgAlpha(1.0f);
     // Window id is after the ###, the window title is the friend name
     std::string friend_window_id = std::move("###" + std::to_string(state.id));
-    if (ImGui::Begin((state.window_title + friend_window_id).c_str(), &show)) {
+    if (feraxia::begin_auxiliary((state.window_title + friend_window_id).c_str(), &show)) {
         if (state.window_state & window_state_need_attention && ImGui::IsWindowFocused()) {
             state.window_state &= ~window_state_need_attention;
         }
@@ -950,34 +965,17 @@ void Steam_Overlay::build_friend_window(Friend const& frd, friend_window_state& 
             }
         }
 
-        ImGui::InputTextMultiline("##chat_history", &state.chat_history[0], state.chat_history.length(), { -1.0f, -2.0f * ImGui::GetFontSize() }, ImGuiInputTextFlags_ReadOnly);
-        // TODO: Fix the layout of the chat line + send button.
-        // It should be like this: chat input should fill the window size minus send button size (button size is fixed)
-        // |------------------------------|
-        // | /--------------------------\ |
-        // | |                          | |
-        // | |       chat history       | |
-        // | |                          | |
-        // | \--------------------------/ |
-        // | [____chat line______] [send] |
-        // |------------------------------|
-        //
-        // And it is like this
-        // |------------------------------|
-        // | /--------------------------\ |
-        // | |                          | |
-        // | |       chat history       | |
-        // | |                          | |
-        // | \--------------------------/ |
-        // | [__chat line__] [send]       |
-        // |------------------------------|
+        const float history_height = (std::max)(ImGui::GetFontSize() * 3.f,
+            ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing());
+        ImGui::InputTextMultiline("##chat_history", &state.chat_history[0], state.chat_history.length(),
+            ImVec2((std::max)(1.f, ImGui::GetContentRegionAvail().x), history_height), ImGuiInputTextFlags_ReadOnly);
         float wnd_width = ImGui::GetContentRegionAvail().x;
         ImGuiStyle &style = ImGui::GetStyle();
         wnd_width -= ImGui::CalcTextSize(translationSend[current_language]).x + style.FramePadding.x * 2 + style.ItemSpacing.x + 1;
 
         uint64_t frd_id = frd.id();
         ImGui::PushID((const char *)&frd_id, (const char *)&frd_id + sizeof(frd_id));
-        ImGui::PushItemWidth(wnd_width);
+        ImGui::PushItemWidth((std::max)(1.f, wnd_width));
 
         if (ImGui::InputText("##chat_line", state.chat_input, max_chat_len, ImGuiInputTextFlags_EnterReturnsTrue)) {
             send_chat_msg = true;
@@ -1225,13 +1223,7 @@ ImVec4 Steam_Overlay::get_notification_bg_rgba_safe()
         );
     }
 
-    // fallback to dark-gray background
-    return ImVec4(
-        0.12f,
-        0.14f,
-        0.21f,
-        1.0f
-    );
+    return feraxia::color(0x131315);
 }
 
 void Steam_Overlay::build_notifications(float width, float height)
@@ -1273,9 +1265,9 @@ void Steam_Overlay::build_notifications(float width, float height)
 
         ImGui::PushStyleColor(ImGuiCol_Border, is_rare_achievement
             ? ImVec4(32.0f / 255.0f, 24.0f / 255.0f, 8.0f / 255.0f, settings_noti_alpha)
-            : ImVec4(0, 0, 0, settings_noti_alpha));
+            : feraxia::color(0xe01b24, settings_noti_alpha));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, get_notification_bg_rgba_safe());
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 255, settings_noti_alpha * 2));
+        ImGui::PushStyleColor(ImGuiCol_Text, feraxia::color(0xc9cacc, settings_noti_alpha));
         if (is_rare_achievement) {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
         }
@@ -1910,25 +1902,93 @@ uint32 Steam_Overlay::apply_global_style_color()
 // Try to make this function as short as possible or it might affect game's fps.
 void Steam_Overlay::render_main_window()
 {
-    char tmp[TRANSLATION_BUFFER_SIZE]{};
-    snprintf(tmp, sizeof(tmp), translationRenderer[current_language], (_renderer == nullptr ? "Unknown" : _renderer->GetLibraryName()));
-    std::string windowTitle{};
-    // Note: don't translate this, project and author names are nouns, they must be kept intact for proper referral
-    // think of it as translating "Protobuf - Google"
-    windowTitle.append("Ingame Overlay project - Nemirtingas (").append(tmp).append(")");
-
     bool show = true;
-
     ImGuiIO &io = ImGui::GetIO();
-
     ImGui::PushFont(font_default);
     uint32 style_color_stack = apply_global_style_color();
+    const auto shell = feraxia::layout(io.DisplaySize.x, io.DisplaySize.y, ImGui::GetFontSize());
+    const std::string shortcut = overlay_hotkey_hint + "  /  " + translationClose[current_language];
+    if (feraxia::begin_shell(shell, shortcut.c_str(), show)) {
+        feraxia::begin_navigation(shell);
+        ImGui::TextDisabled("OVERLAY");
+        ImGui::Separator();
+        if (settings->overlay_show_button_user_info) {
+            // user clicked on "toggle user info"
+            if (feraxia::navigation_button(translationToggleUserInfo[current_language], show_user_info)) {
+                show_user_info = !show_user_info;
+            }
+        }
 
-    ImGui::SetNextWindowPos({ 0, 0 });
-    ImGui::SetNextWindowSize({ io.DisplaySize.x, io.DisplaySize.y });
-    if (ImGui::Begin(windowTitle.c_str(), &show,
-            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_NoBringToFrontOnFocus)) {
+        if (settings->overlay_show_button_achievements) {
+            // user clicked on "show achievements"
+            if (feraxia::navigation_button(translationShowAchievements[current_language], show_achievements)) {
+                show_achievements = !show_achievements;
+            }
+        }
+
+        if (settings->overlay_show_button_test_achievement) {
+            // user clicked on "test achievement"
+            if (feraxia::navigation_button(translationTestAchievement[current_language])) {
+                show_test_achievement();
+            }
+        }
+
+        if (settings->overlay_show_button_copy_id) {
+            // user clicked on "copy id" on themselves
+            if (feraxia::navigation_button(translationCopyId[current_language])) {
+                auto friend_id_str = std::to_string(settings->get_local_steam_id().ConvertToUint64());
+                ImGui::SetClipboardText(friend_id_str.c_str());
+            }
+        }
+
+        if (settings->overlay_show_button_screenshots) {
+            // user clicked on "Screenshots"
+            if (feraxia::navigation_button(translationScreenshots[current_language], show_screenshots_window)) {
+                show_screenshots_window = !show_screenshots_window;
+            }
+		}
+
+        if (settings->overlay_show_button_history) {
+            // user clicked on "notification history"
+            if (feraxia::navigation_button(translationHistory[current_language], show_notification_history)) {
+                show_notification_history = !show_notification_history;
+            }
+        }
+
+        if (settings->overlay_show_button_settings) {
+            // user clicked on "settings"
+            if (feraxia::navigation_button(translationSettings[current_language], show_settings)) {
+                show_settings = !show_settings;
+            }
+        }
+        
+        ImGui::Spacing();
+        ImGui::Spacing();
+        // user clicked on "FPS"
+        if (settings->overlay_show_checkbox_fps) {
+            if (ImGui::Checkbox(translationFpsCheckbox[current_language], &stats.show_fps)) {
+                allow_renderer_frame_processing(stats.show_fps);
+            }
+        }
+        
+        // user clicked on "Frametime"
+        if (settings->overlay_show_checkbox_frametime) {
+            if (ImGui::Checkbox(translationFrametimeCheckbox[current_language], &stats.show_frametime)) {
+                allow_renderer_frame_processing(stats.show_frametime);
+            }
+        }
+        
+        // user clicked on "Playtime"
+        if (settings->overlay_show_checkbox_playtime) {
+            if (ImGui::Checkbox(translationPlaytimeCheckbox[current_language], &stats.show_playtime)) {
+                allow_renderer_frame_processing(stats.show_playtime);
+            }
+        }
+        
+        ImGui::Spacing();
+        ImGui::Spacing();
+
+        feraxia::begin_content(shell);
         if (show_user_info) {
             ImGui::LabelText("##playinglabel", translationUserPlaying[current_language],
                 settings->get_local_name(),
@@ -1953,94 +2013,6 @@ void Steam_Overlay::render_main_window()
                 ImGui::LabelText("##playtime", translationTotalTimeText[current_language], total_buf, session_buf);
             }
         }
-
-        ImGui::Spacing();
-
-        if (settings->overlay_show_button_user_info) {
-            ImGui::SameLine();
-            // user clicked on "toggle user info"
-            if (ImGui::Button(translationToggleUserInfo[current_language])) {
-                show_user_info = !show_user_info;
-            }
-        }
-
-        if (settings->overlay_show_button_achievements) {
-            ImGui::SameLine();
-            // user clicked on "show achievements"
-            if (ImGui::Button(translationShowAchievements[current_language])) {
-                show_achievements = !show_achievements;
-            }
-        }
-
-        if (settings->overlay_show_button_test_achievement) {
-            ImGui::SameLine();
-            // user clicked on "test achievement"
-            if (ImGui::Button(translationTestAchievement[current_language])) {
-                show_test_achievement();
-            }
-        }
-
-        if (settings->overlay_show_button_copy_id) {
-            ImGui::SameLine();
-            // user clicked on "copy id" on themselves
-            if (ImGui::Button(translationCopyId[current_language])) {
-                auto friend_id_str = std::to_string(settings->get_local_steam_id().ConvertToUint64());
-                ImGui::SetClipboardText(friend_id_str.c_str());
-            }
-        }
-
-        if (settings->overlay_show_button_screenshots) {
-            ImGui::SameLine();
-            // user clicked on "Screenshots"
-            if (ImGui::Button(translationScreenshots[current_language])) {
-                show_screenshots_window = !show_screenshots_window;
-            }
-		}
-
-        if (settings->overlay_show_button_history) {
-            ImGui::SameLine();
-            // user clicked on "notification history"
-            if (ImGui::Button(translationHistory[current_language])) {
-                show_notification_history = !show_notification_history;
-            }
-        }
-
-        if (settings->overlay_show_button_settings) {
-            ImGui::SameLine();
-            // user clicked on "settings"
-            if (ImGui::Button(translationSettings[current_language])) {
-                show_settings = !show_settings;
-            }
-        }
-        
-        ImGui::Spacing();
-        ImGui::Spacing();
-        // user clicked on "FPS"
-        if (settings->overlay_show_checkbox_fps) {
-            ImGui::SameLine();
-            if (ImGui::Checkbox(translationFpsCheckbox[current_language], &stats.show_fps)) {
-                allow_renderer_frame_processing(stats.show_fps);
-            }
-        }
-        
-        // user clicked on "Frametime"
-        ImGui::SameLine();
-        if (settings->overlay_show_checkbox_frametime) {
-            if (ImGui::Checkbox(translationFrametimeCheckbox[current_language], &stats.show_frametime)) {
-                allow_renderer_frame_processing(stats.show_frametime);
-            }
-        }
-        
-        // user clicked on "Playtime"
-        ImGui::SameLine();
-        if (settings->overlay_show_checkbox_playtime) {
-            if (ImGui::Checkbox(translationPlaytimeCheckbox[current_language], &stats.show_playtime)) {
-                allow_renderer_frame_processing(stats.show_playtime);
-            }
-        }
-        
-        ImGui::Spacing();
-        ImGui::Spacing();
 
         // --- Notification history panel ---
         if (show_notification_history) {
@@ -2116,7 +2088,9 @@ void Steam_Overlay::render_main_window()
             }
         }
 
-        ImGui::LabelText("##label", "%s", translationFriends[current_language]);
+        ImGui::Separator();
+        ImGui::Text("%s  (%u)", translationFriends[current_language], static_cast<unsigned>(friends.size()));
+        ImGui::TextDisabled("%s / %s", translationChat[current_language], translationInvite[current_language]);
 
         if (!friends.empty()) {
             if (i_have_lobby) {
@@ -2127,7 +2101,7 @@ void Steam_Overlay::render_main_window()
                 }
             }
 
-            if (ImGuiHelper_BeginListBox("##label", static_cast<int>(friends.size()))) {
+            if (ImGui::BeginListBox("##feraxia_friends", ImVec2(-1.f, 0))) {
                 std::for_each(friends.begin(), friends.end(), [this](std::pair<Friend const, friend_window_state> &i) {
                     ImGui::PushID(i.second.id-base_friend_window_id+base_friend_item_id);
 
@@ -2139,18 +2113,25 @@ void Steam_Overlay::render_main_window()
 
                     ImGui::PopID();
 
-                    build_friend_window(i.first, i.second);
                 });
                 ImGui::EndListBox();
             }
         }
 
+        if (friends.empty()) {
+            ImGui::TextWrapped("No peers connected.");
+        }
+        ImGui::Spacing();
+        ImGui::TextDisabled("%s", _renderer == nullptr ? "Unknown renderer" : _renderer->GetLibraryName());
+        feraxia::end_content(shell);
+        // Chat windows remain active even when their friend row is scrolled out of view.
+        for (auto &entry : friends) build_friend_window(entry.first, entry.second);
+
         // user clicked on "show achievements" button
-        if (show_achievements && achievements.size()) {
-            ImGui::SetNextWindowSizeConstraints(ImVec2(ImGui::GetFontSize() * 32, ImGui::GetFontSize() * 32), ImVec2(8192, 8192));
+        if (show_achievements) {
+            feraxia::auxiliary_window(ImGui::GetFontSize() * 42.f, ImGui::GetFontSize() * 36.f);
             ImGui::SetNextWindowBgAlpha(1.0f);
-            ImGui::SetNextWindowPos(ImVec2(ImGui::GetFontSize() * 4, std::max(ImGui::GetFontSize() * 10, io.DisplaySize.y * 0.15f)), ImGuiCond_FirstUseEver);
-            if (ImGui::Begin(translationAchievementWindow[current_language], &show_achievements)) {
+            if (feraxia::begin_auxiliary(translationAchievementWindow[current_language], &show_achievements)) {
                 ImGui::Text("%s", translationListOfAchievements[current_language]);
                 ImGui::BeginChild(translationAchievements[current_language]);
 
@@ -2340,7 +2321,8 @@ void Steam_Overlay::render_main_window()
         // user clicked on "settings" button
         if (show_settings) {
             ImGui::SetNextWindowBgAlpha(1.0f);
-            if (ImGui::Begin(translationGlobalSettingsWindow[current_language], &show_settings)) {
+            feraxia::auxiliary_window(ImGui::GetFontSize() * 36.f, ImGui::GetFontSize() * 32.f);
+            if (feraxia::begin_auxiliary(translationGlobalSettingsWindow[current_language], &show_settings)) {
                 ImGui::Text("%s", translationGlobalSettingsWindowDescription[current_language]);
 
                 ImGui::Separator();
@@ -2372,7 +2354,8 @@ void Steam_Overlay::render_main_window()
             std::string url = show_url;
             bool show = true;
             ImGui::SetNextWindowBgAlpha(1.0f);
-            if (ImGui::Begin(URL_WINDOW_NAME, &show)) {
+            feraxia::auxiliary_window(ImGui::GetFontSize() * 40.f, ImGui::GetFontSize() * 14.f);
+            if (feraxia::begin_auxiliary(URL_WINDOW_NAME, &show)) {
                 ImGui::Text("%s", translationSteamOverlayURL[current_language]);
                 ImGui::Spacing();
 
@@ -2391,10 +2374,10 @@ void Steam_Overlay::render_main_window()
 
         bool show_warning = warn_local_save || warn_bad_appid;
         if (show_warning) {
-            ImGui::SetNextWindowSizeConstraints(ImVec2(ImGui::GetFontSize() * 32, ImGui::GetFontSize() * 32), ImVec2(8192, 8192));
+            feraxia::auxiliary_window(ImGui::GetFontSize() * 42.f, ImGui::GetFontSize() * 36.f);
             ImGui::SetNextWindowFocus();
             ImGui::SetNextWindowBgAlpha(1.0f);
-            if (ImGui::Begin(translationWarning[current_language], &show_warning)) {
+            if (feraxia::begin_auxiliary(translationWarning[current_language], &show_warning)) {
                 if (warn_bad_appid) {
                     ImGui::TextColored(ImVec4(255, 0, 0, 255),
                         "%s %s %s",
@@ -3150,10 +3133,9 @@ void Steam_Overlay::render_gallery_window()
     ImGui::PushFont(font_default);
     uint32 style_color_stack = apply_global_style_color();
 
-    ImGui::SetNextWindowSizeConstraints(ImVec2(400, 300), ImVec2(8192, 8192));
-    ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
+    feraxia::auxiliary_window(ImGui::GetFontSize() * 50.f, ImGui::GetFontSize() * 36.f);
     ImGui::SetNextWindowBgAlpha(1.0f);
-    if (ImGui::Begin(translationScreenshots[current_language], &show_screenshots_window)) {
+    if (feraxia::begin_auxiliary(translationScreenshots[current_language], &show_screenshots_window)) {
         // Delete/Unpin toolbar
         bool has_selection = false;
         for (auto& item : screenshot_items) {
