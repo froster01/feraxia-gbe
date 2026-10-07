@@ -378,8 +378,8 @@ public:
     bool overlay_show_button_user_info = true;
     bool overlay_show_button_achievements = true;
     bool overlay_show_button_test_achievement = true;
-    bool overlay_show_button_copy_id = true;
-    bool overlay_show_button_screenshots = true;
+    bool overlay_show_button_copy_id = false;
+    bool overlay_show_button_screenshots = false;
     bool overlay_show_button_history = true;
     bool overlay_show_button_settings = true;
     bool overlay_show_checkbox_fps = true;
