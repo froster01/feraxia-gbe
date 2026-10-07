@@ -40,8 +40,8 @@ It is refreshed every 5 s from the normal broadcast and about every 1 s while
 the overlay is open or the ping HUD is on. It shows `--` until a peer answers
 over UDP, and a sample goes stale after 15 s. It measures the peer-to-peer
 path, not a Steam server. The HUD shows the slowest peer. `overlay_always_show_ping`
-keeps the ping HUD on and `show_checkbox_ping` shows its checkbox, both in
-`configs.overlay.ini`.
+keeps the ping HUD on (default 0) and `show_checkbox_ping` shows its checkbox
+(default 1), both under `[overlay::general]` in `configs.overlay.ini`.
 
 `show_button_copy_id` and `show_button_screenshots` now default to off. Set
 them to `1` in `configs.overlay.ini` to show those buttons again.
