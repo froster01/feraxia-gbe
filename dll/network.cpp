@@ -703,6 +703,7 @@ bool Networking::handle_announce(Common_Message *msg, IP_PORT ip_port)
 
         //send ping packet if not pinged
         if (!conn->udp_pinged) {
+            conn->ping.sent(std::chrono::steady_clock::now());
             Common_Message msg = create_announce(true);
             size_t size = msg.ByteSizeLong(); 
             char *buffer = new char[size];
@@ -711,6 +712,7 @@ bool Networking::handle_announce(Common_Message *msg, IP_PORT ip_port)
             delete[] buffer;
         }
     } else if (msg->announce().type() == Announce::PONG) {
+        conn->ping.pong(std::chrono::steady_clock::now());
         conn->udp_ip_port = ip_port;
         conn->udp_pinged = true;
     }
@@ -889,9 +891,13 @@ Common_Message Networking::create_announce(bool request)
 
 void Networking::send_announce_broadcasts()
 {
+    {
+        const auto ping_now = std::chrono::steady_clock::now();
+        for (auto &c : connections) c.ping.sent(ping_now);
+    }
     Common_Message msg = create_announce(true);
 
-    size_t size = msg.ByteSizeLong(); 
+    size_t size = msg.ByteSizeLong();
     std::vector<char> buffer(size);
     msg.SerializeToArray(&buffer[0], static_cast<int>(size));
     for (uint16 i = DEFAULT_PORT; i < DEFAULT_PORT + NUM_QUERY_PORTS; i++) {
@@ -903,6 +909,49 @@ void Networking::send_announce_broadcasts()
 
     last_broadcast = std::chrono::high_resolution_clock::now();
     PRINT_DEBUG("sent broadcasts");
+}
+
+void Networking::send_ping_probes()
+{
+    const auto now = std::chrono::steady_clock::now();
+    last_probe = now;
+
+    Common_Message msg = create_announce(true);
+    size_t size = msg.ByteSizeLong();
+    std::vector<char> buffer(size);
+    if (!msg.SerializeToArray(&buffer[0], static_cast<int>(size))) return;
+    for (auto &conn : connections) {
+        if (!conn.udp_pinged) continue; // only peers that already answered over UDP
+        conn.ping.sent(now);
+        send_packet_to(udp_socket, conn.udp_ip_port, &buffer[0], static_cast<unsigned long>(size));
+    }
+}
+
+void Networking::publish_ping_snapshot(std::chrono::steady_clock::time_point now)
+{
+    if (now - last_ping_snapshot < std::chrono::milliseconds(500)) return;
+    last_ping_snapshot = now;
+
+    std::unordered_map<uint64_t, int> fresh;
+    for (const auto &conn : connections) {
+        const auto ms = conn.ping.ms(now);
+        if (!ms.has_value()) continue;
+        for (const auto &id : conn.ids) fresh[id.ConvertToUint64()] = *ms;
+    }
+
+    std::lock_guard<std::mutex> lock(ping_mutex);
+    ping_snapshot = std::move(fresh);
+}
+
+void Networking::set_ping_probes(bool enable)
+{
+    ping_probes.store(enable, std::memory_order_relaxed);
+}
+
+std::unordered_map<uint64_t, int> Networking::get_peer_pings()
+{
+    std::lock_guard<std::mutex> lock(ping_mutex);
+    return ping_snapshot;
 }
 
 void Networking::Run()
@@ -919,6 +968,11 @@ void Networking::Run()
     // PRINT_DEBUG_ENTRY();
     if (check_timedout(last_broadcast, BROADCAST_INTERVAL)) {
         send_announce_broadcasts();
+    }
+
+    if (ping_probes.load(std::memory_order_relaxed) &&
+        std::chrono::steady_clock::now() - last_probe >= std::chrono::seconds(1)) {
+        send_ping_probes();
     }
 
     IP_PORT ip_port;
@@ -1135,6 +1189,7 @@ void Networking::Run()
         }
     }
 
+    publish_ping_snapshot(std::chrono::steady_clock::now());
     reset_last_error();
 }
 
