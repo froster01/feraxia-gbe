@@ -894,10 +894,11 @@ void Networking::send_announce_broadcasts()
     {
         const auto ping_now = std::chrono::steady_clock::now();
         for (auto &c : connections) c.ping.sent(ping_now);
+        last_probe = ping_now; // restart the 1 s probe timer so a probe never lands within one round trip of a broadcast
     }
     Common_Message msg = create_announce(true);
 
-    size_t size = msg.ByteSizeLong();
+    size_t size = msg.ByteSizeLong(); 
     std::vector<char> buffer(size);
     msg.SerializeToArray(&buffer[0], static_cast<int>(size));
     for (uint16 i = DEFAULT_PORT; i < DEFAULT_PORT + NUM_QUERY_PORTS; i++) {

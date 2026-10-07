@@ -1693,7 +1693,7 @@ static void parse_overlay_general_config(class Settings *settings_client, class 
 
     settings_client->overlay_show_checkbox_playtime = ini.GetBoolValue("overlay::general", "show_checkbox_playtime", settings_client->overlay_show_checkbox_playtime);
     settings_server->overlay_show_checkbox_playtime = ini.GetBoolValue("overlay::general", "show_checkbox_playtime", settings_server->overlay_show_checkbox_playtime);
-
+    
     settings_client->overlay_show_checkbox_ping = ini.GetBoolValue("overlay::general", "show_checkbox_ping", settings_client->overlay_show_checkbox_ping);
     settings_server->overlay_show_checkbox_ping = ini.GetBoolValue("overlay::general", "show_checkbox_ping", settings_server->overlay_show_checkbox_ping);
 
