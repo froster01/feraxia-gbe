@@ -385,6 +385,7 @@ public:
     bool overlay_show_checkbox_fps = true;
     bool overlay_show_checkbox_frametime = true;
     bool overlay_show_checkbox_playtime = true;
+    bool overlay_show_checkbox_ping = true;
     // whether to auto accept any overlay invites
     bool auto_accept_any_overlay_invites = false;
     // list of user steam IDs to auto-accept invites from
@@ -397,6 +398,7 @@ public:
     bool overlay_always_show_fps = false;
     bool overlay_always_show_frametime = false;
     bool overlay_always_show_playtime = false;
+    bool overlay_always_show_ping = false;
     // keys used to toggle the overlay, default = Shift + Tab
     std::vector<std::string> overlay_toggle_keys{};
     // 0=disable the F12 screenshot feature
