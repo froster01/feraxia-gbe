@@ -40,6 +40,8 @@ public:
     bool show_fps = false;
     bool show_frametime = false;
     bool show_playtime = false;
+    bool show_ping = false;
+    int ping_ms = -1; // slowest connected peer, set by Steam_Overlay each frame, -1 = unknown
 
     Steam_Overlay_Stats(class Settings* settings);
 
