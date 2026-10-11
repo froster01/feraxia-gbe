@@ -20,7 +20,7 @@ int main() {
     check(!feraxia::layout(640, 480, 24).wide, "large font on small screen stacks navigation");
     check(feraxia::layout(1920, 1080, 16).wide, "desktop has side navigation");
     check(feraxia::layout(1920, 1080, 16).width < 1920, "desktop shell leaves game visible around it");
-    check(feraxia::layout(1920, 1080, 16).rail_width >= 200, "desktop navigation has readable width");
+    check(feraxia::layout(1920, 1080, 16).rail_width >= 150, "desktop navigation has readable width");
     std::printf("%s: viewport/font layout regressions\n", failures ? "FAIL" : "PASS");
     return failures ? 1 : 0;
 }

@@ -130,13 +130,13 @@ struct Overlay_Appearance {
     std::string font_override{}; // path to a custom user-provided TTF font
     std::string font_override_ach_title{}; // path to custom font for achievement title
     std::string font_override_ach_desc{}; // path to custom font for achievement description
-    float font_size = 16.0f;
+    float font_size = 14.0f;
     float font_size_fps = 0.0f;
     float font_size_ach_title = 0.0f;
     float font_size_ach_desc = 0.0f;
     bool font_ach_title_bold = false;
     
-    float icon_size = 64.0f;
+    float icon_size = 40.0f;
 
     float font_glyph_extra_spacing_x = 1.0f;
     float font_glyph_extra_spacing_y = 0.0f;
@@ -146,9 +146,9 @@ struct Overlay_Appearance {
     float notification_b = 21.f / 255.f;
     float notification_a = 1.0f;
 
-    float notification_rounding = 10.0f; // corners roundness for all notifications
-    float notification_margin_x = 5.0f; // horizontal margin
-    float notification_margin_y = 5.0f; // vertical margin
+    float notification_rounding = 8.0f; // corners roundness for all notifications
+    float notification_margin_x = 8.0f; // horizontal margin
+    float notification_margin_y = 8.0f; // vertical margin
     
     uint32 notification_animation = 350; // sliding animation duration (millisec)
     uint32 notification_duration_progress = 6000; // achievement progress indication duration (millisec)

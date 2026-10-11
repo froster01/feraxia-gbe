@@ -15,7 +15,7 @@ inline ImVec4 color(unsigned rgb, float alpha = 1.f) {
         float(rgb & 255) / 255.f, alpha);
 }
 inline void apply_theme(ImGuiStyle &s) {
-    s.WindowRounding = 12.f;
+    s.WindowRounding = 8.f;
     s.ChildRounding = 8.f;
     s.FrameRounding = 5.f;
     s.PopupRounding = 8.f;
@@ -23,9 +23,9 @@ inline void apply_theme(ImGuiStyle &s) {
     s.ScrollbarRounding = 6.f;
     s.WindowBorderSize = 1.f;
     s.ChildBorderSize = 1.f;
-    s.WindowPadding = ImVec2(18.f, 16.f);
-    s.FramePadding = ImVec2(12.f, 8.f);
-    s.ItemSpacing = ImVec2(10.f, 10.f);
+    s.WindowPadding = ImVec2(12.f, 10.f);
+    s.FramePadding = ImVec2(8.f, 4.f);
+    s.ItemSpacing = ImVec2(8.f, 5.f);
     s.Colors[ImGuiCol_Text] = color(0xc9cacc);
     s.Colors[ImGuiCol_TextDisabled] = color(0x929399);
     s.Colors[ImGuiCol_WindowBg] = color(0x131315);

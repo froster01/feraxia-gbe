@@ -1044,7 +1044,7 @@ void Steam_Overlay::set_next_notification_pos(std::pair<float, float> scrn_size,
     auto &global_style = ImGui::GetStyle();
     const float padding_all_sides = 2 * (global_style.WindowPadding.y + global_style.WindowPadding.x);
 
-    const float noti_width = scrn_width * Notification::width_percent;
+    const float noti_width = (std::max)(scrn_width * Notification::width_percent, ImGui::GetFontSize() * 20.f);
     const float msg_height = ImGui::CalcTextSize(
         noti.message.c_str(),
         noti.message.c_str() + noti.message.size(),
@@ -1912,13 +1912,6 @@ void Steam_Overlay::render_main_window()
         feraxia::begin_navigation(shell);
         ImGui::TextDisabled("OVERLAY");
         ImGui::Separator();
-        if (settings->overlay_show_button_user_info) {
-            // user clicked on "toggle user info"
-            if (feraxia::navigation_button(translationToggleUserInfo[current_language], show_user_info)) {
-                show_user_info = !show_user_info;
-            }
-        }
-
         if (settings->overlay_show_button_achievements) {
             // user clicked on "show achievements"
             if (feraxia::navigation_button(translationShowAchievements[current_language], show_achievements)) {
@@ -1947,13 +1940,6 @@ void Steam_Overlay::render_main_window()
                 show_screenshots_window = !show_screenshots_window;
             }
 		}
-
-        if (settings->overlay_show_button_history) {
-            // user clicked on "notification history"
-            if (feraxia::navigation_button(translationHistory[current_language], show_notification_history)) {
-                show_notification_history = !show_notification_history;
-            }
-        }
 
         if (settings->overlay_show_button_settings) {
             // user clicked on "settings"
@@ -1989,7 +1975,10 @@ void Steam_Overlay::render_main_window()
         ImGui::Spacing();
 
         feraxia::begin_content(shell);
-        if (show_user_info) {
+        // "User" (profile + friends) and "History" are separate tabs of the same panel.
+        const bool tabs_open = ImGui::BeginTabBar("##feraxia_tabs");
+        if (tabs_open && ImGui::BeginTabItem("User")) {
+        if (settings->overlay_show_button_user_info) {
             ImGui::LabelText("##playinglabel", translationUserPlaying[current_language],
                 settings->get_local_name(),
                 settings->get_local_steam_id().ConvertToUint64(),
@@ -2014,8 +2003,44 @@ void Steam_Overlay::render_main_window()
             }
         }
 
-        // --- Notification history panel ---
-        if (show_notification_history) {
+        ImGui::Separator();
+        ImGui::Text("%s  (%u)", translationFriends[current_language], static_cast<unsigned>(friends.size()));
+        ImGui::TextDisabled("%s / %s", translationChat[current_language], translationInvite[current_language]);
+
+        if (!friends.empty()) {
+            if (i_have_lobby) {
+                std::string inviteAll(translationInviteAll[current_language]);
+                inviteAll.append("##PopupInviteAllFriends");
+                if (ImGui::Button(inviteAll.c_str())) { // if btn clicked
+                    invite_all_friends_clicked = true;
+                }
+            }
+
+            if (ImGui::BeginListBox("##feraxia_friends", ImVec2(-1.f, 0))) {
+                std::for_each(friends.begin(), friends.end(), [this](std::pair<Friend const, friend_window_state> &i) {
+                    ImGui::PushID(i.second.id-base_friend_window_id+base_friend_item_id);
+
+                    ImGui::Selectable(i.second.window_title.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
+                    build_friend_context_menu(i.first, i.second);
+                    if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(0)) {
+                        i.second.window_state |= window_state_show;
+                    }
+
+                    ImGui::PopID();
+
+                });
+                ImGui::EndListBox();
+            }
+        }
+
+        if (friends.empty()) {
+            ImGui::TextWrapped("No peers connected.");
+        }
+        ImGui::EndTabItem();
+        }
+
+        // --- Notification history tab ---
+        if (tabs_open && settings->overlay_show_button_history && ImGui::BeginTabItem(translationHistory[current_language])) {
             if (ImGui::Button(translationClearAll[current_language])) {
                 notification_history.clear();
                 notification_history_cache.clear();
@@ -2086,41 +2111,10 @@ void Steam_Overlay::render_main_window()
                 }
                 ImGui::EndChild();
             }
+        ImGui::EndTabItem();
         }
+        if (tabs_open) ImGui::EndTabBar();
 
-        ImGui::Separator();
-        ImGui::Text("%s  (%u)", translationFriends[current_language], static_cast<unsigned>(friends.size()));
-        ImGui::TextDisabled("%s / %s", translationChat[current_language], translationInvite[current_language]);
-
-        if (!friends.empty()) {
-            if (i_have_lobby) {
-                std::string inviteAll(translationInviteAll[current_language]);
-                inviteAll.append("##PopupInviteAllFriends");
-                if (ImGui::Button(inviteAll.c_str())) { // if btn clicked
-                    invite_all_friends_clicked = true;
-                }
-            }
-
-            if (ImGui::BeginListBox("##feraxia_friends", ImVec2(-1.f, 0))) {
-                std::for_each(friends.begin(), friends.end(), [this](std::pair<Friend const, friend_window_state> &i) {
-                    ImGui::PushID(i.second.id-base_friend_window_id+base_friend_item_id);
-
-                    ImGui::Selectable(i.second.window_title.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick);
-                    build_friend_context_menu(i.first, i.second);
-                    if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(0)) {
-                        i.second.window_state |= window_state_show;
-                    }
-
-                    ImGui::PopID();
-
-                });
-                ImGui::EndListBox();
-            }
-        }
-
-        if (friends.empty()) {
-            ImGui::TextWrapped("No peers connected.");
-        }
         ImGui::Spacing();
         ImGui::TextDisabled("%s", _renderer == nullptr ? "Unknown renderer" : _renderer->GetLibraryName());
         feraxia::end_content(shell);

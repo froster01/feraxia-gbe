@@ -84,7 +84,7 @@ struct Overlay_Achievement
 
 struct Notification
 {
-    static constexpr float width_percent = 0.25f; // percentage from total width
+    static constexpr float width_percent = 0.17f; // percentage from total width
     static constexpr std::chrono::milliseconds default_show_time = std::chrono::milliseconds(6000);
 
     int id{};
