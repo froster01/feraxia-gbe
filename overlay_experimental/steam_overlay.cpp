@@ -1673,10 +1673,58 @@ bool Steam_Overlay::try_load_ach_icon(Overlay_Achievement &ach, bool achieved, b
 }
 
 // Try to make this function as short as possible or it might affect game's fps.
+#ifdef __WINDOWS__
+// Temporary field diagnostics: appends renderer/texture state to %TEMP%\feraxia-overlay-diag.log
+// on the first frame and whenever it changes (capped), so a blank overlay can be traced.
+static void feraxia_diag(bool ready, bool shown, const char *renderer, ImFontAtlas &atlas)
+{
+    static std::string last;
+    static int lines = 0;
+    static unsigned frame = 0;
+    ++frame;
+    if (lines >= 300) return;
+    ImGuiIO &io = ImGui::GetIO();
+    std::ostringstream o;
+    o << "ready=" << ready << " shown=" << shown << " renderer=" << (renderer ? renderer : "none")
+      << " display=" << io.DisplaySize.x << "x" << io.DisplaySize.y
+      << " hasTextures=" << ((io.BackendFlags & ImGuiBackendFlags_RendererHasTextures) != 0)
+      << " fontsBuilt=" << atlas.IsBuilt() << " tex=[";
+    for (ImTextureData *t : atlas.TexList)
+        o << " {status=" << (int)t->Status << " id=" << (unsigned long long)t->TexID
+          << " " << t->Width << "x" << t->Height << " pix=" << (t->Pixels != nullptr) << "}";
+    o << " ]";
+    if (ImDrawData *d = ImGui::GetDrawData()) {
+        int cmds = 0, bad = 0;
+        for (ImDrawList *l : d->CmdLists)
+            for (const ImDrawCmd &c : l->CmdBuffer) {
+                ++cmds;
+                const ImTextureData *td = c.TexRef._TexData;
+                if (td && td->TexID == ImTextureID_Invalid) ++bad;
+            }
+        o << " lastDraw{lists=" << d->CmdListsCount << " cmds=" << cmds << " invalidTex=" << bad
+          << " pendingTextures=" << (d->Textures ? d->Textures->Size : -1) << "}";
+    }
+    const std::string state = o.str();
+    if (state == last && frame % 600 != 0) return;
+    last = state;
+    ++lines;
+    char path[MAX_PATH]{};
+    if (!GetTempPathA(MAX_PATH, path)) return;
+    std::string file = std::string(path) + "feraxia-overlay-diag.log";
+    if (FILE *f = fopen(file.c_str(), "ab")) {
+        fprintf(f, "[frame %u] %s\n", frame, state.c_str());
+        fclose(f);
+    }
+}
+#endif
+
 void Steam_Overlay::overlay_render_proc()
 {
     std::lock_guard lock(overlay_mutex);
 
+#ifdef __WINDOWS__
+    feraxia_diag(Ready(), show_overlay, _renderer ? _renderer->GetLibraryName() : nullptr, fonts_atlas);
+#endif
     if (!Ready()) return;
 
     // Process achievement queue to show scheduled notifications
