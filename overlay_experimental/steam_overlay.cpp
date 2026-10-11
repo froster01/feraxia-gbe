@@ -1696,7 +1696,7 @@ static void feraxia_diag(bool ready, bool shown, const char *renderer, ImFontAtl
     {
         // Public API only: ImGuiContext internals can differ between this module and the renderer library.
         ImVector<ImTextureData *> &list = ImGui::GetPlatformIO().Textures;
-        o << " ctx{frame=" << ImGui::GetFrameCount() << " ioFonts=" << (io.Fonts == &atlas)
+        o << " ctx{ioFonts=" << (io.Fonts == &atlas)
           << " refs=" << atlas.RefCount << " owner=" << (atlas.OwnerContext != nullptr)
           << " rendererHasTex=" << atlas.RendererHasTextures
           << " platformTex=" << list.Size << " [";

@@ -807,6 +807,34 @@ if _OPTIONS["build-ingame_overlay"] or _OPTIONS["all-build"] then
         end
     end
 
+    -- Fix a startup race in every Windows renderer hook: StartHook() installed the
+    -- Present hook (EndHook) and only afterwards stored the shared ImFontAtlas. If the game's
+    -- render thread presented in between, _PrepareForOverlay() created the ImGui context
+    -- without our atlas, so our fonts/textures were never registered or uploaded and the
+    -- overlay drew nothing (or hit the GetTexID assertion). Store the atlas before hooking.
+    do
+        local assign = '_ImGuiFontAtlas = imguiFontAtlas;'
+        local hooks = { 'DX9Hook', 'DX10Hook', 'DX11Hook', 'DX12Hook', 'OpenGLHook', 'VulkanHook' }
+        for _, name in ipairs(hooks) do
+            local hook_file = path.join(deps_dir, 'ingame_overlay', 'src', 'Windows', name .. '.cpp')
+            local text = io.readfile(hook_file)
+            if not text then error('Could not read renderer hook: ' .. hook_file) end
+            local begin_first, begin_last = text:find('BeginHook();', 1, true)
+            local assign_first, assign_last = text:find(assign, 1, true)
+            if not begin_first or not assign_first then
+                error('Unexpected renderer hook layout; review the atlas ordering patch: ' .. name)
+            end
+            if text:find('BeginHook();', begin_last + 1, true) or text:find(assign, assign_last + 1, true) then
+                error('Ambiguous renderer hook layout; review the atlas ordering patch: ' .. name)
+            end
+            if assign_first > begin_first then
+                local fixed = text:sub(1, begin_first - 1) .. assign .. ' // set before the Present hook can run\n        '
+                    .. text:sub(begin_first, assign_first - 1) .. text:sub(assign_last + 1)
+                if not io.writefile(hook_file, fixed) then error('Could not patch renderer hook: ' .. hook_file) end
+            end
+        end
+    end
+
     -- fixes 32-bit compilation of DX12
     local overaly_imgui_cfg_file = path.join(deps_dir, 'ingame_overlay', 'imconfig.imcfg')
     if not io.writefile(overaly_imgui_cfg_file, [[
