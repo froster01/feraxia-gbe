@@ -1820,10 +1820,6 @@ void Steam_Overlay::overlay_render_proc()
         build_notifications(io.DisplaySize.x, io.DisplaySize.y);
     }
 
-    if (stats.show_any_stats()) {
-        stats.render_stats(current_language);
-    }
-
     load_next_ach_icon();
 }
 
@@ -1948,32 +1944,6 @@ void Steam_Overlay::render_main_window()
             }
         }
         
-        ImGui::Spacing();
-        ImGui::Spacing();
-        // user clicked on "FPS"
-        if (settings->overlay_show_checkbox_fps) {
-            if (ImGui::Checkbox(translationFpsCheckbox[current_language], &stats.show_fps)) {
-                allow_renderer_frame_processing(stats.show_fps);
-            }
-        }
-        
-        // user clicked on "Frametime"
-        if (settings->overlay_show_checkbox_frametime) {
-            if (ImGui::Checkbox(translationFrametimeCheckbox[current_language], &stats.show_frametime)) {
-                allow_renderer_frame_processing(stats.show_frametime);
-            }
-        }
-        
-        // user clicked on "Playtime"
-        if (settings->overlay_show_checkbox_playtime) {
-            if (ImGui::Checkbox(translationPlaytimeCheckbox[current_language], &stats.show_playtime)) {
-                allow_renderer_frame_processing(stats.show_playtime);
-            }
-        }
-        
-        ImGui::Spacing();
-        ImGui::Spacing();
-
         feraxia::begin_content(shell);
         // "User" (profile + friends) and "History" are separate tabs of the same panel.
         const bool tabs_open = ImGui::BeginTabBar("##feraxia_tabs");
@@ -1983,24 +1953,6 @@ void Steam_Overlay::render_main_window()
                 settings->get_local_name(),
                 settings->get_local_steam_id().ConvertToUint64(),
                 settings->get_local_game_id().AppID());
-
-            if (settings->record_playtime && playtime_counter && settings->overlay_appearance.show_playtime_in_user_info) {
-                uint64_t session_sec = playtime_counter->session_seconds();
-                unsigned ss = static_cast<unsigned>(session_sec % 60);
-                unsigned mm = static_cast<unsigned>((session_sec / 60) % 60);
-                unsigned hh = static_cast<unsigned>(session_sec / 3600);
-
-                uint64_t total_sec = playtime_counter->seconds();
-                unsigned total_h = static_cast<unsigned>(total_sec / 3600);
-                unsigned total_m = static_cast<unsigned>((total_sec % 3600) / 60);
-
-                char total_buf[32]{};
-                char session_buf[32]{};
-                snprintf(total_buf, sizeof(total_buf), translationTotalTime[current_language], total_h, total_m);
-                snprintf(session_buf, sizeof(session_buf), "%02u:%02u:%02u", hh, mm, ss);
-
-                ImGui::LabelText("##playtime", translationTotalTimeText[current_language], total_buf, session_buf);
-            }
         }
 
         ImGui::Separator();
