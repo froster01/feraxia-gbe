@@ -1693,6 +1693,17 @@ static void feraxia_diag(bool ready, bool shown, const char *renderer, ImFontAtl
         o << " {status=" << (int)t->Status << " id=" << (unsigned long long)t->TexID
           << " " << t->Width << "x" << t->Height << " pix=" << (t->Pixels != nullptr) << "}";
     o << " ]";
+    {
+        ImGuiContext &g = *ImGui::GetCurrentContext();
+        bool registered = false;
+        for (ImFontAtlas *a : g.FontAtlases) registered |= (a == &atlas);
+        o << " ctx{frame=" << g.FrameCount << " ended=" << g.FrameCountEnded << " rendered=" << g.FrameCountRendered
+          << " ioFonts=" << (io.Fonts == &atlas) << " atlases=" << g.FontAtlases.Size << " registered=" << registered
+          << " refs=" << atlas.RefCount << " owner=" << (atlas.OwnerContext != nullptr)
+          << " rendererHasTex=" << atlas.RendererHasTextures
+          << " platformTex=" << g.PlatformIO.Textures.Size << " backend=" << (io.BackendRendererName ? io.BackendRendererName : "none")
+          << " backendData=" << (io.BackendRendererUserData != nullptr) << "}";
+    }
     if (ImDrawData *d = ImGui::GetDrawData()) {
         int cmds = 0, bad = 0;
         for (ImDrawList *l : d->CmdLists)
