@@ -32,6 +32,10 @@ try {
   }
   $protoc = Join-Path $repositoryRoot 'build/deps/win/vs2022/protobuf/install64/bin/protoc.exe'
   if (!(Test-Path -LiteralPath $protoc)) { throw 'Build dependencies first with -PrepareDependencies.' }
+  # Also on cached builds: apply the source-controlled texture recovery backport,
+  # rebuild the static renderer and install matching headers for both DLL targets.
+  & $premake --file=premake5-deps.lua --64-build --32-build --build-ingame_overlay "--j=$Jobs" --os=windows vs2022
+  if ($LASTEXITCODE -ne 0) { throw 'Patched overlay dependency build failed.' }
   $revision = (& git rev-parse --short=12 HEAD).Trim()
   if ($LASTEXITCODE -ne 0) { throw 'Could not determine source revision.' }
   $dirty = @(& git status --porcelain).Count -gt 0

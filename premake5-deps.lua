@@ -788,6 +788,25 @@ if _OPTIONS["build-protobuf"] or _OPTIONS["all-build"] then
 end
 
 if _OPTIONS["build-ingame_overlay"] or _OPTIONS["all-build"] then
+    -- Backport Dear ImGui v1.92.4's live texture recreation fix (#8811).
+    -- A backend may invalidate a live texture after Render() but before drawing.
+    -- Waiting until the next NewFrame() leaves GetTexID() invalid in that frame.
+    -- Preserve the pinned archive; apply this reviewed change to extracted source.
+    local imgui_header = path.join(deps_dir, 'ingame_overlay', 'deps', 'ImGui', 'imgui.h')
+    local imgui_source = io.readfile(imgui_header)
+    if not imgui_source then error('Could not read pinned ImGui header: ' .. imgui_header) end
+    local before = 'void                SetStatus(ImTextureStatus status) { Status = status; }'
+    local after = 'void                SetStatus(ImTextureStatus status) { Status = status; if (status == ImTextureStatus_Destroyed && !WantDestroyNextFrame) Status = ImTextureStatus_WantCreate; }'
+    if not imgui_source:find(after, 1, true) then
+        local first, last = imgui_source:find(before, 1, true)
+        if not first or imgui_source:find(before, last + 1, true) then
+            error('Unexpected ImGui SetStatus implementation; review the texture recovery backport before building.')
+        end
+        if not io.writefile(imgui_header, imgui_source:sub(1, first - 1) .. after .. imgui_source:sub(last + 1)) then
+            error('Could not apply ImGui live texture recovery backport.')
+        end
+    end
+
     -- fixes 32-bit compilation of DX12
     local overaly_imgui_cfg_file = path.join(deps_dir, 'ingame_overlay', 'imconfig.imcfg')
     if not io.writefile(overaly_imgui_cfg_file, [[
