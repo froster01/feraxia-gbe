@@ -481,8 +481,6 @@ void Steam_Overlay::create_fonts()
         font_builder.AddText(translationAutoAcceptFriendInvite[i]);
         font_builder.AddText(translationFpsCheckbox[i]);
         font_builder.AddText(translationFpsDisplay[i]);
-        font_builder.AddText(translationPingCheckbox[i]);
-        font_builder.AddText(translationPingDisplay[i]);
         font_builder.AddText(translationFrametimeCheckbox[i]);
         font_builder.AddText(translationFrametimeDisplay[i]);
         font_builder.AddText(translationFrametimeUnitDisplay[i]);
@@ -1674,24 +1672,6 @@ bool Steam_Overlay::try_load_ach_icon(Overlay_Achievement &ach, bool achieved, b
     return icon_rsrc->GetResourceId() != 0;
 }
 
-void Steam_Overlay::refresh_peer_pings()
-{
-    const auto now = std::chrono::steady_clock::now();
-    if (now - last_ping_refresh < std::chrono::milliseconds(500)) return;
-    last_ping_refresh = now;
-
-    // probes cost one tiny UDP packet per peer per second, only run them while ping is visible
-    network->set_ping_probes(stats.show_ping || show_overlay);
-    peer_pings = network->get_peer_pings();
-
-    int worst = -1;
-    for (const auto &entry : friends) {
-        const auto found = peer_pings.find(entry.first.id());
-        if (found != peer_pings.end() && found->second > worst) worst = found->second;
-    }
-    stats.ping_ms = worst;
-}
-
 // Try to make this function as short as possible or it might affect game's fps.
 void Steam_Overlay::overlay_render_proc()
 {
@@ -1839,8 +1819,6 @@ void Steam_Overlay::overlay_render_proc()
         ImGuiIO &io = ImGui::GetIO();
         build_notifications(io.DisplaySize.x, io.DisplaySize.y);
     }
-
-    refresh_peer_pings();
 
     if (stats.show_any_stats()) {
         stats.render_stats(current_language);
@@ -2006,12 +1984,6 @@ void Steam_Overlay::render_main_window()
                 allow_renderer_frame_processing(stats.show_playtime);
             }
         }
-
-        if (settings->overlay_show_checkbox_ping) {
-            if (ImGui::Checkbox(translationPingCheckbox[current_language], &stats.show_ping)) {
-                allow_renderer_frame_processing(stats.show_ping);
-            }
-        }
         
         ImGui::Spacing();
         ImGui::Spacing();
@@ -2138,17 +2110,6 @@ void Steam_Overlay::render_main_window()
                     if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(0)) {
                         i.second.window_state |= window_state_show;
                     }
-
-                    char ping_label[32];
-                    const auto found_ping = peer_pings.find(i.first.id());
-                    if (found_ping == peer_pings.end()) {
-                        snprintf(ping_label, sizeof(ping_label), "--");
-                    } else {
-                        snprintf(ping_label, sizeof(ping_label), "%d%s", found_ping->second, translationFrametimeUnitDisplay[current_language]);
-                    }
-                    ImGui::SameLine(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(ping_label).x - ImGui::GetStyle().FramePadding.x);
-                    const auto row_tier = found_ping == peer_pings.end() ? PingTier::none : ping_tier(found_ping->second);
-                    ImGui::TextColored(feraxia::ping_color(row_tier, ImGui::GetStyleColorVec4(ImGuiCol_Text)), "%s", ping_label);
 
                     ImGui::PopID();
 

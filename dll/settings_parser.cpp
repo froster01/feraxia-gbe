@@ -1694,9 +1694,6 @@ static void parse_overlay_general_config(class Settings *settings_client, class 
     settings_client->overlay_show_checkbox_playtime = ini.GetBoolValue("overlay::general", "show_checkbox_playtime", settings_client->overlay_show_checkbox_playtime);
     settings_server->overlay_show_checkbox_playtime = ini.GetBoolValue("overlay::general", "show_checkbox_playtime", settings_server->overlay_show_checkbox_playtime);
     
-    settings_client->overlay_show_checkbox_ping = ini.GetBoolValue("overlay::general", "show_checkbox_ping", settings_client->overlay_show_checkbox_ping);
-    settings_server->overlay_show_checkbox_ping = ini.GetBoolValue("overlay::general", "show_checkbox_ping", settings_server->overlay_show_checkbox_ping);
-
     settings_client->overlay_upload_achs_icons_to_gpu = ini.GetBoolValue("overlay::general", "upload_achievements_icons_to_gpu", settings_client->overlay_upload_achs_icons_to_gpu);
     settings_server->overlay_upload_achs_icons_to_gpu = ini.GetBoolValue("overlay::general", "upload_achievements_icons_to_gpu", settings_server->overlay_upload_achs_icons_to_gpu);
 
@@ -1711,9 +1708,6 @@ static void parse_overlay_general_config(class Settings *settings_client, class 
 
     settings_client->overlay_always_show_playtime = ini.GetBoolValue("overlay::general", "overlay_always_show_playtime", settings_client->overlay_always_show_playtime);
     settings_server->overlay_always_show_playtime = ini.GetBoolValue("overlay::general", "overlay_always_show_playtime", settings_server->overlay_always_show_playtime);
-
-    settings_client->overlay_always_show_ping = ini.GetBoolValue("overlay::general", "overlay_always_show_ping", settings_client->overlay_always_show_ping);
-    settings_server->overlay_always_show_ping = ini.GetBoolValue("overlay::general", "overlay_always_show_ping", settings_server->overlay_always_show_ping);
 
     settings_client->enable_screenshot = ini.GetBoolValue("overlay::general", "enable_screenshot", settings_client->enable_screenshot);
     settings_server->enable_screenshot = ini.GetBoolValue("overlay::general", "enable_screenshot", settings_server->enable_screenshot);

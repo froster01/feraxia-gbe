@@ -1,7 +1,6 @@
 #pragma once
 #include <algorithm>
 #include "feraxia_layout.h"
-#include "../../dll/dll/ping_tracker.h"
 #ifndef IMGUI_VERSION
 #include "InGameOverlay/ImGui/imgui.h"
 #endif
@@ -14,15 +13,6 @@ namespace feraxia {
 inline ImVec4 color(unsigned rgb, float alpha = 1.f) {
     return ImVec4(float((rgb >> 16) & 255) / 255.f, float((rgb >> 8) & 255) / 255.f,
         float(rgb & 255) / 255.f, alpha);
-}
-// Normal text color for a good ping, amber for fair, crimson for poor, dim grey when unknown.
-inline ImVec4 ping_color(PingTier tier, const ImVec4 &normal, float alpha = 1.f) {
-    switch (tier) {
-        case PingTier::good: return normal;
-        case PingTier::fair: return color(0xd9a441, alpha);
-        case PingTier::poor: return color(0xe01b24, alpha);
-        default: return color(0x929399, alpha);
-    }
 }
 inline void apply_theme(ImGuiStyle &s) {
     s.WindowRounding = 12.f;

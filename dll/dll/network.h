@@ -19,10 +19,6 @@
 #define NETWORK_INCLUDE
 
 #include "base.h"
-#include "ping_tracker.h"
-#include <atomic>
-#include <mutex>
-#include <unordered_map>
 #include <curl/curl.h>
 
 #define DEFAULT_PORT 47584
@@ -98,7 +94,6 @@ struct Connection {
     std::vector<CSteamID> ids{};
     uint32 appid{};
     std::chrono::high_resolution_clock::time_point last_received{};
-    PingTracker ping{};
 };
 
 class Networking
@@ -114,16 +109,6 @@ class Networking
     std::vector<CSteamID> ids;
     uint32 appid;
     std::chrono::high_resolution_clock::time_point last_broadcast;
-
-    // ping measurement: written by Run() on the game thread, read through ping_mutex only
-    std::atomic<bool> ping_probes{false};
-    std::chrono::steady_clock::time_point last_probe{};
-    std::chrono::steady_clock::time_point last_ping_snapshot{};
-    std::mutex ping_mutex;
-    std::unordered_map<uint64_t, int> ping_snapshot{};
-    void send_ping_probes();
-    void publish_ping_snapshot(std::chrono::steady_clock::time_point now);
-
     std::vector<IP_PORT> custom_broadcasts;
 
     std::vector<struct TCP_Socket> accepted;
@@ -182,11 +167,6 @@ public:
     uint32 getIP(CSteamID id);
     uint16 getPort(CSteamID id);
     uint32 getOwnIP();
-
-    // while true, PING is sent to every answered peer once a second instead of every 5 s broadcast
-    void set_ping_probes(bool enable);
-    // steam id -> smoothed round trip in ms, only peers with a fresh sample. Thread-safe.
-    std::unordered_map<uint64_t, int> get_peer_pings();
 
     void startQuery(IP_PORT ip_port);
     void shutDownQuery();

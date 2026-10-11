@@ -1,8 +1,6 @@
 #include "overlay/steam_overlay_stats.h"
 // translation
 #include "overlay/steam_overlay_translations.h"
-#include "overlay/feraxia_theme.h"
-#include "dll/ping_tracker.h"
 #include <utility>
 
 #if defined(_WIN32)
@@ -32,12 +30,11 @@ Steam_Overlay_Stats::Steam_Overlay_Stats(class Settings* settings):
     show_fps = settings->overlay_always_show_fps;
     show_frametime = settings->overlay_always_show_frametime;
     show_playtime = settings->overlay_always_show_playtime;
-    show_ping = settings->overlay_always_show_ping;
 }
 
 bool Steam_Overlay_Stats::show_any_stats() const
 {
-    return show_fps || show_frametime || show_playtime || show_ping;
+    return show_fps || show_frametime || show_playtime;
 }
 
 void Steam_Overlay_Stats::update_frametime(const std::chrono::high_resolution_clock::time_point &now)
@@ -157,18 +154,11 @@ void Steam_Overlay_Stats::render_stats(int current_language)
     }
     const auto stats_txt = stats_txt_buff.str();
 
-    std::string ping_txt;
-    if (show_ping) {
-        ping_txt = translationPingDisplay[current_language];
-        ping_txt += ping_ms >= 0
-            ? std::to_string(ping_ms) + translationFrametimeUnitDisplay[current_language]
-            : std::string("--");
-    }
-    const std::string separator = (!stats_txt.empty() && !ping_txt.empty()) ? " | " : "";
-    const std::string full_txt = stats_txt + separator + ping_txt;
-
     // set FPS box width/height based on text size
-    const auto msg_box = ImGui::CalcTextSize(full_txt.c_str(), full_txt.c_str() + full_txt.size());
+    const auto msg_box = ImGui::CalcTextSize(
+        stats_txt.c_str(),
+        stats_txt.c_str() + stats_txt.size()
+    );
     auto &global_style = ImGui::GetStyle();
     const float padding_all_sides = global_style.WindowPadding.y + global_style.WindowPadding.x;
     const auto stats_box = ImVec2(msg_box.x + padding_all_sides, msg_box.y + padding_all_sides);
@@ -186,16 +176,7 @@ void Steam_Overlay_Stats::render_stats(int current_language)
             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs |
             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse)) {
-        if (!stats_txt.empty()) {
-            ImGui::TextUnformatted((stats_txt + separator).c_str());
-            if (!ping_txt.empty()) ImGui::SameLine(0.f, 0.f);
-        }
-        if (!ping_txt.empty()) {
-            const auto tier = ping_ms >= 0 ? ping_tier(ping_ms) : PingTier::none;
-            ImGui::TextColored(
-                feraxia::ping_color(tier, ImGui::GetStyleColorVec4(ImGuiCol_Text), settings->overlay_appearance.stats_text_a),
-                "%s", ping_txt.c_str());
-        }
+        ImGui::TextWrapped("%s", stats_txt.c_str());
     }
     ImGui::End();
 
