@@ -151,10 +151,25 @@ end
 local deps_dir = _OPTIONS["deps-dir"]
 local build_dir = _OPTIONS["build-dir"]
 
+-- Workaround for https://github.com/actions/runner-images/issues/14071
+-- (Windows ARM Github runners reports amd64 instead of arm64 when using
+--  os.hostarch(), but PROCESSOR_IDENTIFIER still emulates a proper ARM CPU)
+-- Always returns an uppercase architecture
+local function get_host_arch()
+    if os.host() == "windows" then
+        local ident = os.getenv("PROCESSOR_IDENTIFIER")
+        if ident and ident:upper():find("^ARM") then
+            return "ARM64"
+        end
+    end
+    return os.hostarch():upper()
+end
+
 local function genproto()
     local deps_install_prefix = ''
-    local harch = os.hostarch()
-    if harch == "x86_64" then
+    local harch = get_host_arch()
+    print(harch)
+    if harch == "X86_64" or harch == "AMD64" then
         deps_install_prefix = 'install64'
     elseif harch == "ARM64" or harch == "AARCH64" then
         deps_install_prefix = 'installarm'
@@ -451,6 +466,7 @@ local common_link_win = {
     "Gdi32"    .. static_postfix,
     "Dwmapi"   .. static_postfix,
     "OpenGL32" .. static_postfix,
+    "dxgi"     .. static_postfix,
 }
 -- add deps to win
 table_append(common_link_win, deps_link)
@@ -1061,7 +1077,7 @@ project "api_experimental"
 project "steamclient_experimental"
     kind "SharedLib"
     location "%{wks.location}/%{prj.name}"
-    
+
     -- targetdir
     ---------
     filter { "system:windows", }
@@ -1080,7 +1096,7 @@ project "steamclient_experimental"
         targetname "steamclientARM" -- if you ever need windows ARM64
     filter { "system:not windows", }
         targetname "steamclient"
-    
+
 
     -- defines
     ---------
@@ -1382,7 +1398,7 @@ project "lib_game_overlay_renderer"
     filter { "system:not windows", }
         targetname "gameoverlayrenderer"
 
-    
+
     -- include dir
     ---------
     -- x32 include dir
