@@ -1,19 +1,9 @@
 # Feraxia GBE fork
 
-<!-- workspace-ai:start -->
-
-Shared AI Workspace rules:
-
-- At the beginning of every session, determine the current Git project and branch, then call the shared-ai-workspace MCP tool workspace_bootstrap before editing.
-- Treat the returned handoff, active work, memories, and decisions as the continuation context for this session.
-- Record durable project knowledge with workspace_write_memory and architectural choices with workspace_record_decision.
-- Keep active work updated when the task direction changes.
-- Before ending a task or switching tools, call workspace_write_handoff with completed work, files changed, tests run, blockers, constraints, and the exact next step.
-- Never claim shared context was loaded unless the MCP call succeeded.
-
-<!-- workspace-ai:end -->
-
-If workspace_write_handoff is unavailable, write equivalent shared memory.
+Code index: use the `codebase-mcp` server (codebase-memory MCP, project
+`froster01_feraxia-gbe_1408674745`). It indexes the pushed repository on the server, not this
+checkout; check `index_status` and `check_index_coverage` before relying on it, and read the source
+when coverage is missing or stale. Keep decisions and handoffs in the repository or the conversation.
 
 Fork: https://github.com/froster01/feraxia-gbe
 Upstream: https://github.com/Detanup01/gbe_fork
